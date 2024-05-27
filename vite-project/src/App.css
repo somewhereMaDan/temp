@@ -1,6 +1,16 @@
-body{
+body {
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
+}
+input {
+  width: 80%;
+}
+
+.Generate_Answer_Form {
+  height: 15vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
 }

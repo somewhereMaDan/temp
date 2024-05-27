@@ -5,3 +5,5 @@
 3. Maximum File Size: There might be a limit on the maximum file size for each OCR request. This could range from a few megabytes to tens of megabytes.
 
 4. Rate Limits: There might be rate limits on the number of requests you can make per minute or per hour. For example, you might be limited to a certain number of requests per minute to prevent abuse.
+
+source venv/bin/activate
