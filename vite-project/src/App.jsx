@@ -43,6 +43,7 @@ const UploadPDF = () => {
     const fileURLs = [];
 
     for (const file of selectedFiles) {
+      // const fileRef = ref(storage, `Files/${file.name}`);
       const fileRef = ref(storage, `Files/${file.name + v4()}`);
       setTotalFileNames(prevFileNames => [...prevFileNames, file.name]);
       try {
@@ -87,51 +88,64 @@ const UploadPDF = () => {
   return (
     <div className='mainpage'>
       <Toaster richColors />
-      <div>
-        <h1>Upload PDF Files</h1>
-        <form onSubmit={handleSubmit}>
-          <input type="file" onChange={handleFileChange} multiple />
-          <button type="submit">Upload</button>
-        </form>
-        {/* {extractedText.length > 0 && extractedText.map((text, index) => (
+      <div className='content'>
+        <div>
+          <h1>Upload PDF/Docx Files</h1>
+          <form onSubmit={handleSubmit}>
+            <input type="file" onChange={handleFileChange} multiple />
+            <button style={{ marginTop: '20px' }} type="submit">Upload</button>
+          </form>
+          <div>
+            <ul>
+              {TotalFileNames.map((FileName, index) => (
+                <li key={index}>{FileName}</li>
+              ))}
+            </ul>
+          </div>
+          {/* {extractedText.length > 0 && extractedText.map((text, index) => (
           <div key={index}>
             <h2>Extracted Text {index + 1}:</h2>
             <p>{text}</p>
           </div>
         ))} */}
-        {summary.length > 0 && summary.map((sum, index) => (
-          <div key={index}>
-            <h2>Summary by AI For PDF {index + 1}, PDF Name: {TotalFileNames[index]}:</h2>
-            <p>{sum}</p>
-          </div>
-        ))}
-      </div>
-
-      <div>
-        <h2>Generate a Question-Based Answer from the PDFs</h2>
-        <form className='Generate_Answer_Form' onSubmit={handleInputSubmit}>
-          <div>
-            <input type="text" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Enter your prompt here" />
-          </div>
-          <div>
-            <button type="submit">Generate Answer</button>
-          </div>
-        </form>
-        {answer && (
-          <div>
-            <h2>Answer by AI:</h2>
-            <p>{answer}</p>
-          </div>
-        )}
-      </div>
-
-      <div>
-        <h2>Stored Prompts</h2>
-        <ul>
-          {storedPrompts.map((storedPrompt, index) => (
-            <li key={index}>{storedPrompt}</li>
+          {summary.length > 0 && summary.map((sum, index) => (
+            <div key={index}>
+              <h2>Summary by AI For File {index + 1}, File Name: {TotalFileNames[index]}:</h2>
+              <p>{sum}</p>
+            </div>
           ))}
-        </ul>
+        </div>
+
+        <div>
+          <h2>Generate a Question-Based Answer from the PDFs/Docx</h2>
+          <form className='Generate_Answer_Form' onSubmit={handleInputSubmit}>
+            <div>
+              <input type="text" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Enter your prompt here" />
+            </div>
+            <div>
+              <button type="submit">Generate Answer</button>
+            </div>
+          </form>
+          {answer && (
+            <div>
+              <h2>Answer by AI:</h2>
+              <p>{answer}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className='storedPrompts'>
+        <div>
+          <div style={{ textAlign: 'center' }}>
+            <h2>Stored Prompts</h2>
+          </div>
+          <ul>
+            {storedPrompts.map((storedPrompt, index) => (
+              <li key={index}>{storedPrompt}</li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );

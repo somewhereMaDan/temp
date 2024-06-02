@@ -3,6 +3,9 @@ from flask_cors import CORS
 import requests
 from io import BytesIO
 from pdf2image import convert_from_bytes
+import subprocess
+import os
+import tempfile
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -13,6 +16,21 @@ textValue = {}
 def home():
     return "Hello Flask APP"
 
+def is_valid_url(url):
+    try:
+        result = requests.utils.urlparse(url)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
+
+def get_content_type(url):
+    try:
+        response = requests.head(url)
+        content_type = response.headers.get('Content-Type')
+        return content_type
+    except requests.RequestException as e:
+        return str(e)
+        
 def extract_text_from_image(image_bytes, api_key):
     url = "https://api.ocr.space/parse/image"
     payload = {
@@ -30,10 +48,20 @@ def extract_text_from_image(image_bytes, api_key):
 
 def extract_text_from_pdf_with_images(pdf_url, api_key):
     text = ""
+    temp_pdf_path = None
     try:
-        response = requests.get(pdf_url)
-        response.raise_for_status()
-        pdf_bytes = BytesIO(response.content)
+        # Check if the input is a URL or a file path
+        if is_valid_url(pdf_url):
+            response = requests.get(pdf_url)
+            response.raise_for_status()
+            pdf_bytes = BytesIO(response.content)
+        else:
+            with open(pdf_url, 'rb') as f:
+                pdf_bytes = BytesIO(f.read())
+                # Save PDF to a temporary file
+                with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_pdf:
+                    temp_pdf.write(pdf_bytes.getbuffer())
+                    temp_pdf_path = temp_pdf.name
 
         # Convert all pages of the PDF to images
         images = convert_from_bytes(pdf_bytes.getvalue())
@@ -49,6 +77,36 @@ def extract_text_from_pdf_with_images(pdf_url, api_key):
                 text += f"Page {idx + 1}:\nText extraction failed for this image\n"
     except Exception as e:
         print(f"An error occurred while extracting text from PDF: {e}")
+    finally:
+        # Clean up the temporary PDF file
+        if temp_pdf_path and os.path.exists(temp_pdf_path):
+            os.remove(temp_pdf_path)
+
+    return text
+
+def download_file_from_url(url):
+    response = requests.get(url)
+    response.raise_for_status()  # Check if the request was successful
+    return BytesIO(response.content)
+
+def extract_text_from_docx_with_images(docx_url, api_key):
+    text = ""
+    try:
+        response = requests.get(docx_url)
+        response.raise_for_status()
+        docx_bytes = BytesIO(response.content)
+
+        with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as temp_docx:
+            temp_docx.write(docx_bytes.read())
+            temp_docx_path = temp_docx.name
+
+        temp_pdf_path = temp_docx_path.replace('.docx', '.pdf')
+        subprocess.run(['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir', os.path.dirname(temp_docx_path), temp_docx_path], stderr=subprocess.DEVNULL)
+        
+        # return temp_pdf_path
+        text = extract_text_from_pdf_with_images(temp_pdf_path,api_key)
+    except Exception as e:
+        print(f"An error occurred while extracting text from DOCX: {e}")
 
     return text
 
@@ -99,10 +157,19 @@ def upload_file():
         api_key = "K83551900988957"
         gemini_api_key = "AIzaSyDvdKaAqQsbJim30noP8mfkHNAl0Y8pwhM"
 
+        # content_type = str(get_content_type(file_urls))
+        # print(content_type)
+
         for url in file_urls:
-            extracted_text = extract_text_from_pdf_with_images(url, api_key)
-            summary = summarize_text_with_gemini(extracted_text, gemini_api_key)
+            content_type = get_content_type(url)
+            if 'pdf' in content_type:
+                print("this is a pdf file")
+                extracted_text = extract_text_from_pdf_with_images(url, api_key)
+            elif 'word' in content_type:
+                print("The file is a DOCX.")
+                extracted_text = extract_text_from_docx_with_images(url, api_key)
             all_extracted_texts.append(extracted_text)
+            summary = summarize_text_with_gemini(extracted_text, gemini_api_key)
             all_summaries.append(summary)
 
         textValue["all_extracted_texts"] = all_extracted_texts
@@ -138,12 +205,12 @@ def promptAnswer():
     print(question)
     print(TotalFileNames)
 
-    all_extracted_texts = textValue.get("all_extracted_texts", [])
+    all_extracted_texts = textValue['all_extracted_texts']
 
     final_prompt = ''
 
     for index, text in enumerate(all_extracted_texts):
-        final_prompt += f"Starting Point of the text Content of the PDF starts from here-\nPDF: {index + 1}, PDF Name: {TotalFileNames[index]}\nTextValue of PDF:\n{text}\nEnding Point of text content of the PDF is ends here.\n\n\n"
+        final_prompt += f"Starting Point of the text Content of the File starts from here-\File: {index + 1}, File Name: {TotalFileNames[index]}\nTextValue of File:\n{text}\nEnding Point of text content of the File is ends here.\n\n\n"
 
     print(final_prompt)
 

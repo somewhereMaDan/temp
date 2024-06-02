@@ -1,11 +1,30 @@
 body {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
+  width: 100%;
 }
 input {
   width: 80%;
+}
+
+.mainpage {
+  display: flex;
+}
+
+.content{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 77vw;
+}
+.storedPrompts {
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 20vw;
 }
 
 .Generate_Answer_Form {
