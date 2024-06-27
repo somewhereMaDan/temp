@@ -1,10 +1,5 @@
 Could you explain to me in brief about the "Audit Trail" which is under "Approach to Specific Part 11 Requirements"?
-Could you please state what is the 1st File is for and same about the 2nd File?
-What did Sabine Brosch has to say about MedDRA?
 Is the structure of MedDRA complicated? Describe it's structure?
-Who is Christina Winter ? WHat did he has to say about MedDRA?
-what is the official site of MedDRA? how can we contact MedDRA?
-what is MVAT in MedDRA?
-What are the three things required to create a front end page? What type of scripting language is HTML?
+Who is Christina Winter ? What did she has to say about MedDRA?
 what is poverty ? What are the causes of Poverty ? How can we measure the Poverty in India?
-what are the economic causes of poverty? What are the causes of poverty in India? describe it in short.
+Who is Christina Winter ? WHat did he has to say about MedDRA and Is the structure of MedDRA complicated? Describe it's structure?

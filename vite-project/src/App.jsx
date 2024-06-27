@@ -5,6 +5,8 @@ import { toast, Toaster } from "sonner";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from './firebase.jsx';
 import { v4 } from "uuid";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm'; // for GitHub flavored markdown
 
 const UploadPDF = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -14,6 +16,14 @@ const UploadPDF = () => {
   const [answer, setAnswer] = useState('');
   const [TotalFileNames, setTotalFileNames] = useState([]);
   const [storedPrompts, setStoredPrompts] = useState([]); // State to store prompts
+
+  const [selectedLanguage, setSelectedLanguage] = useState('');
+
+  const handleChange = (event) => {
+    setSelectedLanguage(event.target.value);
+  };
+
+  console.log(selectedLanguage);
 
   useEffect(() => {
     fetchStoredPrompts();
@@ -84,7 +94,47 @@ const UploadPDF = () => {
       console.log(err);
     }
   };
-  console.log(summary);
+
+  function formatResponse(response) {
+    // Replace markdown syntax with appropriate text
+    response = response.replace(/## /g, '## ');
+
+    // Add line breaks where needed
+    response = response.replace(/\n\n/g, '\n\n');
+    response = response.replace(/\n/g, '\n');
+
+    return response;
+  }
+
+  const formattedAnswer = formatResponse(answer);
+
+  const handleTranslate = async (e) => {
+    e.preventDefault();
+    if (!selectedLanguage) {
+      toast.error("Please select a language");
+      return;
+    }
+
+    toast.info("Translating the Summary...");
+    try {
+      const response = await axios.post('http://localhost:5000/toTranslate', {
+        selectedLanguage: selectedLanguage
+      });
+
+      console.log(response.data);
+
+      if (response.data.translated_texts) {
+        toast.success("Summary Translated Successfully...");
+        setSummary(response.data.translated_texts); // Updating state with translated texts array
+      } else {
+        toast.error("Translation failed.");
+      }
+    } catch (err) {
+      toast.error("Something went wrong...");
+      console.log(err);
+    }
+  };
+
   return (
     <div className='mainpage'>
       <Toaster richColors />
@@ -95,23 +145,35 @@ const UploadPDF = () => {
             <input type="file" onChange={handleFileChange} multiple />
             <button style={{ marginTop: '20px' }} type="submit">Upload</button>
           </form>
-          <div>
+          <div className='file-name-div'>
             <ul>
               {TotalFileNames.map((FileName, index) => (
                 <li key={index}>{FileName}</li>
               ))}
             </ul>
           </div>
-          {/* {extractedText.length > 0 && extractedText.map((text, index) => (
-          <div key={index}>
-            <h2>Extracted Text {index + 1}:</h2>
-            <p>{text}</p>
+
+          <div className="dropdown-container">
+            <label htmlFor="languages">Choose a language:</label>
+            <select id="languages" name="languages" onChange={handleChange} value={selectedLanguage}>
+              <option value="">Select a language</option>
+              <option value="English">English</option>
+              <option value="Spanish">Spanish</option>
+              <option value="German">German</option>
+              <option value="Chinese">Chinese</option>
+            </select>
+            <button className='translate-btn' onClick={handleTranslate}>Translate</button>
           </div>
-        ))} */}
+
+
+          {/* <div id="selected-language">
+            {selectedLanguage && <p>You selected: {selectedLanguage}</p>}
+          </div> */}
+
           {summary.length > 0 && summary.map((sum, index) => (
-            <div key={index}>
+            <div className='summary-div' key={index}>
               <h2>Summary by AI For File {index + 1}, File Name: {TotalFileNames[index]}:</h2>
-              <p>{sum}</p>
+              <ReactMarkdown children={formatResponse(sum)} remarkPlugins={[remarkGfm]} />
             </div>
           ))}
         </div>
@@ -127,9 +189,10 @@ const UploadPDF = () => {
             </div>
           </form>
           {answer && (
-            <div>
+            <div className='Prompt-Answer-div'>
               <h2>Answer by AI:</h2>
-              <p>{answer}</p>
+              {/* <p>{answer}</p> */}
+              <ReactMarkdown children={formattedAnswer} remarkPlugins={[remarkGfm]} />
             </div>
           )}
         </div>

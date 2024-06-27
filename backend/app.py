@@ -202,8 +202,8 @@ def promptAnswer():
     question = request.json.get('prompt')
     TotalFileNames = request.json.get('TotalFileNames')
 
-    print(question)
-    print(TotalFileNames)
+    # print(question)
+    # print(TotalFileNames)
 
     all_extracted_texts = textValue['all_extracted_texts']
 
@@ -212,7 +212,7 @@ def promptAnswer():
     for index, text in enumerate(all_extracted_texts):
         final_prompt += f"Starting Point of the text Content of the File starts from here-\File: {index + 1}, File Name: {TotalFileNames[index]}\nTextValue of File:\n{text}\nEnding Point of text content of the File is ends here.\n\n\n"
 
-    print(final_prompt)
+    # print(final_prompt)
 
     gemini_api_key = "AIzaSyDvdKaAqQsbJim30noP8mfkHNAl0Y8pwhM"
 
@@ -261,7 +261,6 @@ def promptAnswer():
         print(error_message)
         return jsonify({'error': error_message}), 500
 
-
 @app.route("/getPrompts", methods=["GET"])
 def get_prompts():
     try:
@@ -270,6 +269,64 @@ def get_prompts():
         return jsonify({"prompts": [prompt.strip() for prompt in prompts]}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/toTranslate", methods=["POST"])
+def Translate():
+    try:
+        # Extract the input text from the request
+        input_text = textValue.get("all_summaries")
+        selectedLanguage = request.json.get('selectedLanguage')
+
+        if not input_text:
+            return jsonify({"error": "No text provided for translation"}), 400
+
+        if not selectedLanguage:
+            return jsonify({"error": "No language selected"}), 400
+
+        # Azure Translation API credentials and endpoint
+        key = '4e40b2a66b5245ebaa7d68eb6f557c3a'
+        endpoint = 'https://translate-app-api.cognitiveservices.azure.com/translator/text/v3.0/translate'
+        url = endpoint
+        headers = {
+            'Ocp-Apim-Subscription-Key': key,
+            'Content-Type': 'application/json'
+        }
+
+        language_map = {
+            "English" : "en",
+            "Spanish": 'es',
+            "German": 'de',
+            "Chinese": 'zh'
+        }
+
+        if selectedLanguage not in language_map:
+            return jsonify({"error": "Invalid language selected"}), 400
+
+        params = {'api-version': '3.0', 'to': language_map[selectedLanguage]}
+        body = [{'text': text} for text in input_text]  # Keep input text as separate translation requests
+
+        # Make the POST request to the Azure Translation API
+        response = requests.post(url, headers=headers, params=params, json=body)
+        response.raise_for_status()  # Raise an HTTPError if the HTTP request returned an unsuccessful status code
+
+        # Parse the translation result
+        translations = response.json()
+        translated_texts = [item['translations'][0]['text'] for item in translations]
+
+        # print("Translated texts: ", translated_texts)
+        return jsonify({"translated_texts": translated_texts}), 200
+
+    except requests.exceptions.RequestException as e:
+        # Handle any exceptions related to the HTTP request
+        return jsonify({"error": f"RequestException: {str(e)}"}), 500
+    except KeyError as e:
+        # Handle missing keys in the response JSON
+        return jsonify({"error": f"KeyError: {str(e)}"}), 500
+    except Exception as e:
+        # Handle any other exceptions
+        return jsonify({"error": f"Exception: {str(e)}"}), 500
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

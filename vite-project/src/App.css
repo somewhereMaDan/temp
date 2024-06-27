@@ -5,9 +5,28 @@ body {
 input {
   width: 80%;
 }
-
+.translate-btn{
+  margin-left: 10px;
+  height: 10%;
+  width: auto;
+  font-size: 15px;
+}
 .mainpage {
   display: flex;
+}
+
+.file-name-div{
+  padding-left: 9%;
+  text-align: left;
+}
+.summary-div{
+  padding-left: 10%;
+  text-align: left;
+}
+
+.Prompt-Answer-div{
+  text-align: left;
+  padding-left: 10%;
 }
 
 .content{
@@ -32,4 +51,22 @@ input {
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
+}
+
+.dropdown-container {
+  margin-bottom: 20px;
+}
+
+label {
+  margin-right: 10px;
+}
+
+select {
+  padding: 5px;
+  font-size: 16px;
+}
+
+#selected-language {
+  font-size: 18px;
+  margin-top: 20px;
 }
