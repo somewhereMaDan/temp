@@ -7,6 +7,8 @@ import { storage } from './firebase.jsx';
 import { v4 } from "uuid";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm'; // for GitHub flavored markdown
+import Logo from './photos/logo.png'
+import LogoTitle from './photos/tagline.png'
 
 const UploadPDF = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -157,117 +159,131 @@ const UploadPDF = () => {
         setDeviceRegulatoryNumber(response.data.RegulatoryNumber)
       }
     } catch (err) {
-      toast.err("Couldn't Perform the Search..!")
+      toast.error("This Keyword does not exist..!")
     }
   }
 
   return (
-    <div className='mainpage'>
-      <Toaster richColors />
-      <div className='content'>
-        <div>
-          <h1>Upload PDF/Docx Files</h1>
-          <form onSubmit={handleSubmit} style={{display: "flex", alignItems: "center"}}>
-            <input type="file" onChange={handleFileChange} multiple />
-            <button type="submit">Upload</button>
-          </form>
-          <div className='file-name-div'>
-            <ul>
-              {TotalFileNames.map((FileName, index) => (
-                <li key={index}>{FileName}</li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="dropdown-container">
-            <label htmlFor="languages">Choose a language:</label>
-            <select id="languages" name="languages" onChange={handleChange} value={selectedLanguage}>
-              <option value="">Select a language</option>
-              <option value="English">English</option>
-              <option value="Spanish">Spanish</option>
-              <option value="German">German</option>
-              <option value="Chinese">Chinese</option>
-            </select>
-            <button className='translate-btn' onClick={handleTranslate}>Translate</button>
-          </div>
-
-
-          {/* <div id="selected-language">
-            {selectedLanguage && <p>You selected: {selectedLanguage}</p>}
-          </div> */}
-
-          {summary.length > 0 && summary.map((sum, index) => (
-            <div className='summary-div' key={index}>
-              <h2>Summary by AI For File {index + 1}, File Name: {TotalFileNames[index]}:</h2>
-              <ReactMarkdown children={formatResponse(sum)} remarkPlugins={[remarkGfm]} />
-            </div>
-          ))}
+    <div className='wholePage'>
+      <div className='Logo-Div'>
+        <div style={{ padding: "1vw" }}>
+          <img className='Logo-img' src={Logo} alt='Logo'></img>
         </div>
-
-        <div>
-          <h2>Generate a Question-Based Answer from the PDFs/Docx</h2>
-          <form className='Generate_Answer_Form' onSubmit={handleInputSubmit}>
-            <div>
-              <input type="text" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Enter your prompt here" />
-            </div>
-            <div>
-              <button type="submit">Generate Answer</button>
-            </div>
-          </form>
-          {answer && (
-            <div className='Prompt-Answer-div'>
-              <h2>Answer by AI:</h2>
-              {/* <p>{answer}</p> */}
-              <ReactMarkdown children={formattedAnswer} remarkPlugins={[remarkGfm]} />
-            </div>
-          )}
+        <div style={{ padding: "1vw" }} className='Logo-Title'>
+          <img className='Logo-Title' src={LogoTitle} alt="Tagline" />
         </div>
       </div>
-
-      <div className='leftContent'>
-        <div className='SearchPreMarketDB'>
-          <div style={{ textAlign: 'center' }}>
-            <h2>510(k) Premarket Notification DB Search</h2>
-          </div>
-          <form className='Generate_DB_Results' onSubmit={handleDbQuerySearch}>
-            <div className='SearchQueryOnDB'>
-              <div>
-                <input type="text" value={SearchKeyword} onChange={(e) => setSearchKeyword(e.target.value)} placeholder="Enter exact keyword to get similer products" />
-              </div>
-            </div>
-            <div className='SearchQuerySubmit'>
-              <button type="submit">Generate Answer</button>
-            </div>
-          </form>
-          <div className='DbQueryResults'>
-            <div>
-              <h4 style={{ marginLeft: "1vw" }}>510K Numbers</h4>
-              <ol>
-                {K_Number.map((Number, index) => (
-                  <li key={index}>{Number}</li>
-                ))}
-              </ol>
-            </div>
-            <div>
-              <h4 style={{ marginLeft: "1vw" }}>Regulatory Numbers</h4>
+      <div className='mainpage'>
+        <Toaster richColors />
+        <div className='content'>
+          <div className='Upload-File-Get-Summary'>
+            <h1 style={{ textShadow: "5px 5px 7px #888888" }}>DocQ&A</h1>
+            <form onSubmit={handleSubmit} style={{ display: "flex", alignItems: "center" }}>
+              <input type="file" onChange={handleFileChange} multiple />
+              <button type="submit">Upload</button>
+            </form>
+            <div className='file-name-div'>
               <ul>
-                {DeviceRegulatoryNumber.map((Number, index) => (
-                  <li key={index}>{Number}</li>
+                {TotalFileNames.map((FileName, index) => (
+                  <li key={index}>{FileName}</li>
                 ))}
               </ul>
             </div>
+
+            <div className="dropdown-container">
+              <label htmlFor="languages">Choose a language:</label>
+              <select id="languages" name="languages" onChange={handleChange} value={selectedLanguage}>
+                <option value="">Select a language</option>
+                <option value="English">English</option>
+                <option value="Spanish">Spanish</option>
+                <option value="German">German</option>
+                <option value="Chinese">Chinese</option>
+              </select>
+              <button className='translate-btn' onClick={handleTranslate}>Translate</button>
+            </div>
+
+
+            {/* <div id="selected-language">
+            {selectedLanguage && <p>You selected: {selectedLanguage}</p>}
+          </div> */}
+
+            {summary.length > 0 && summary.map((sum, index) => (
+              <div className='summary-div' key={index}>
+                <h2>Summary by AI For File {index + 1}, File Name: {TotalFileNames[index]}:</h2>
+                <ReactMarkdown children={formatResponse(sum)} remarkPlugins={[remarkGfm]} />
+              </div>
+            ))}
+          </div>
+
+          <div className='Generate-Answer-From-Prompt'>
+            <h2>Generate a Question-Based Answer from the PDFs/Docx</h2>
+            <form className='Generate_Answer_Form' onSubmit={handleInputSubmit}>
+              <div>
+                <input className='Question-prompt-input' type="text" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Enter your prompt here" />
+              </div>
+              <div>
+                <button type="submit">Generate Answer</button>
+              </div>
+            </form>
+            {answer && (
+              <div className='Prompt-Answer-div'>
+                <h2>Answer by AI:</h2>
+                {/* <p>{answer}</p> */}
+                <ReactMarkdown children={formattedAnswer} remarkPlugins={[remarkGfm]} />
+              </div>
+            )}
           </div>
         </div>
-        <div className='storedPrompts'>
-          <div>
+
+        <div className='leftContent'>
+          <div className='SearchPreMarketDB'>
             <div style={{ textAlign: 'center' }}>
-              <h2>Stored Prompts</h2>
+              <h2>510(k) Premarket Notification DB Search</h2>
             </div>
-            <ul>
-              {storedPrompts.map((storedPrompt, index) => (
-                <li key={index}>{storedPrompt}</li>
-              ))}
-            </ul>
+            <form className='Generate_DB_Results' onSubmit={handleDbQuerySearch}>
+              <div className='SearchQueryOnDB'>
+                <div>
+                  <input className='SearchQueryOnDB-input' style={{ "color": "black" }} type="text" value={SearchKeyword} onChange={(e) => setSearchKeyword(e.target.value)} placeholder="Enter exact keyword to get similer products" />
+                </div>
+              </div>
+              <div className='SearchQuerySubmit'>
+                <button type="submit">Generate Answer</button>
+              </div>
+            </form>
+            <div className='DbQueryResults'>
+              <div>
+                {
+                  K_Number.length > 0 && <h4 style={{ marginLeft: "1vw" }}>510K Numbers</h4>
+                }
+                <ol>
+                  {K_Number.map((Number, index) => (
+                    <li key={index}>{Number}</li>
+                  ))}
+                </ol>
+              </div>
+              <div>
+                {
+                  DeviceRegulatoryNumber.length > 0 && <h4 style={{ marginLeft: "1vw" }}>Regulatory Numbers</h4>
+                }
+                <ul>
+                  {DeviceRegulatoryNumber.map((Number, index) => (
+                    <li key={index}>{Number}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div className='storedPrompts'>
+            <div>
+              <div style={{ textAlign: 'center' }}>
+                <h2>Stored Prompts</h2>
+              </div>
+              <ul>
+                {storedPrompts.map((storedPrompt, index) => (
+                  <li key={index}>{storedPrompt}</li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </div>
