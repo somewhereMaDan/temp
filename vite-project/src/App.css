@@ -3,9 +3,9 @@ body {
   width: 100%;
 }
 input {
-  width: 80%;
+  width: 100%;
 }
-.translate-btn{
+.translate-btn {
   margin-left: 10px;
   height: 10%;
   width: auto;
@@ -15,21 +15,21 @@ input {
   display: flex;
 }
 
-.file-name-div{
+.file-name-div {
   padding-left: 9%;
   text-align: left;
 }
-.summary-div{
+.summary-div {
   padding-left: 10%;
   text-align: left;
 }
 
-.Prompt-Answer-div{
+.Prompt-Answer-div {
   text-align: left;
   padding-left: 10%;
 }
 
-.content{
+.content {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -37,13 +37,40 @@ input {
   text-align: center;
   width: 77vw;
 }
+
+.leftContent {
+  width: 20vw;
+}
+
+.Generate_DB_Results {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.SearchQueryOnDB {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+}
+.SearchQuerySubmit {
+  margin-top: 2vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.DbQueryResults{
+  display: flex;
+  justify-content: space-between;
+}
 .storedPrompts {
   top: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 20vw;
 }
 
 .Generate_Answer_Form {

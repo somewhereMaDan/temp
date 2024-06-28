@@ -6,15 +6,18 @@ from pdf2image import convert_from_bytes
 import subprocess
 import os
 import tempfile
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 textValue = {}
 
+
 @app.route('/')
 def home():
     return "Hello Flask APP"
+
 
 def is_valid_url(url):
     try:
@@ -23,6 +26,7 @@ def is_valid_url(url):
     except ValueError:
         return False
 
+
 def get_content_type(url):
     try:
         response = requests.head(url)
@@ -30,7 +34,8 @@ def get_content_type(url):
         return content_type
     except requests.RequestException as e:
         return str(e)
-        
+
+
 def extract_text_from_image(image_bytes, api_key):
     url = "https://api.ocr.space/parse/image"
     payload = {
@@ -45,6 +50,7 @@ def extract_text_from_image(image_bytes, api_key):
         return extracted_text
     else:
         return None
+
 
 def extract_text_from_pdf_with_images(pdf_url, api_key):
     text = ""
@@ -70,11 +76,13 @@ def extract_text_from_pdf_with_images(pdf_url, api_key):
             image_bytes = BytesIO()
             image.save(image_bytes, format='PNG')
             image_bytes.seek(0)
-            extracted_image_text = extract_text_from_image(image_bytes, api_key)
+            extracted_image_text = extract_text_from_image(
+                image_bytes, api_key)
             if extracted_image_text:
                 text += f"Page {idx + 1}:\n{extracted_image_text}\n"
             else:
-                text += f"Page {idx + 1}:\nText extraction failed for this image\n"
+                text += f"Page {idx +
+                                1}:\nText extraction failed for this image\n"
     except Exception as e:
         print(f"An error occurred while extracting text from PDF: {e}")
     finally:
@@ -84,10 +92,12 @@ def extract_text_from_pdf_with_images(pdf_url, api_key):
 
     return text
 
+
 def download_file_from_url(url):
     response = requests.get(url)
     response.raise_for_status()  # Check if the request was successful
     return BytesIO(response.content)
+
 
 def extract_text_from_docx_with_images(docx_url, api_key):
     text = ""
@@ -101,14 +111,16 @@ def extract_text_from_docx_with_images(docx_url, api_key):
             temp_docx_path = temp_docx.name
 
         temp_pdf_path = temp_docx_path.replace('.docx', '.pdf')
-        subprocess.run(['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir', os.path.dirname(temp_docx_path), temp_docx_path], stderr=subprocess.DEVNULL)
-        
+        subprocess.run(['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir',
+                       os.path.dirname(temp_docx_path), temp_docx_path], stderr=subprocess.DEVNULL)
+
         # return temp_pdf_path
-        text = extract_text_from_pdf_with_images(temp_pdf_path,api_key)
+        text = extract_text_from_pdf_with_images(temp_pdf_path, api_key)
     except Exception as e:
         print(f"An error occurred while extracting text from DOCX: {e}")
 
     return text
+
 
 def summarize_text_with_gemini(text, gemini_api_key):
     url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
@@ -130,7 +142,8 @@ def summarize_text_with_gemini(text, gemini_api_key):
         "key": gemini_api_key
     }
     try:
-        response = requests.post(url, json=data, headers=headers, params=params)
+        response = requests.post(
+            url, json=data, headers=headers, params=params)
         response.raise_for_status()  # Raise an exception for HTTP errors
         result = response.json()
         if "candidates" in result and result["candidates"]:
@@ -143,6 +156,42 @@ def summarize_text_with_gemini(text, gemini_api_key):
     except Exception as e:
         print("An error occurred:", e)
     return None
+
+
+def search_510k_device(device_name, limit=10):
+    base_url = 'https://api.fda.gov/device/510k.json'
+    params = {
+        'search': f'device_name:"{device_name}"',
+        'limit': limit
+    }
+
+    response = requests.get(base_url, params=params)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise Exception(f"Failed to fetch data: {response.status_code}")
+
+
+def fetch_device_details(k_number):
+    details_url = f'https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfpmn/pmn.cfm?ID={
+        k_number}'
+    response = requests.get(details_url)
+
+    if response.status_code != 200:
+        raise Exception(f"Failed to fetch device details: {
+                        response.status_code}")
+
+    soup = BeautifulSoup(response.content, 'html.parser')
+    reg_number_tag = soup.find(string='Regulation Number').find_next('a')
+
+    if reg_number_tag:
+        reg_number = reg_number_tag.text.strip()
+        return reg_number
+    else:
+        raise Exception(
+            f"Regulation number not found for 510(k) Number: {k_number}")
+
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -164,12 +213,15 @@ def upload_file():
             content_type = get_content_type(url)
             if 'pdf' in content_type:
                 print("this is a pdf file")
-                extracted_text = extract_text_from_pdf_with_images(url, api_key)
+                extracted_text = extract_text_from_pdf_with_images(
+                    url, api_key)
             elif 'word' in content_type:
                 print("The file is a DOCX.")
-                extracted_text = extract_text_from_docx_with_images(url, api_key)
+                extracted_text = extract_text_from_docx_with_images(
+                    url, api_key)
             all_extracted_texts.append(extracted_text)
-            summary = summarize_text_with_gemini(extracted_text, gemini_api_key)
+            summary = summarize_text_with_gemini(
+                extracted_text, gemini_api_key)
             all_summaries.append(summary)
 
         textValue["all_extracted_texts"] = all_extracted_texts
@@ -182,6 +234,7 @@ def upload_file():
         }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 def save_prompt_if_new(prompt):
     try:
@@ -197,6 +250,7 @@ def save_prompt_if_new(prompt):
     except Exception as e:
         print(f"An error occurred while saving the prompt: {e}")
 
+
 @app.route("/promptAnswer", methods=["POST"])
 def promptAnswer():
     question = request.json.get('prompt')
@@ -210,7 +264,8 @@ def promptAnswer():
     final_prompt = ''
 
     for index, text in enumerate(all_extracted_texts):
-        final_prompt += f"Starting Point of the text Content of the File starts from here-\File: {index + 1}, File Name: {TotalFileNames[index]}\nTextValue of File:\n{text}\nEnding Point of text content of the File is ends here.\n\n\n"
+        final_prompt += f"Starting Point of the text Content of the File starts from here-\File: {index + 1}, File Name: {
+            TotalFileNames[index]}\nTextValue of File:\n{text}\nEnding Point of text content of the File is ends here.\n\n\n"
 
     # print(final_prompt)
 
@@ -236,7 +291,8 @@ def promptAnswer():
     }
 
     try:
-        response = requests.post(url, json=data, headers=headers, params=params)
+        response = requests.post(
+            url, json=data, headers=headers, params=params)
         response.raise_for_status()  # Raise an exception for HTTP errors
         result = response.json()
 
@@ -244,7 +300,7 @@ def promptAnswer():
 
         if "candidates" in result and result["candidates"]:
             summarized_text = result["candidates"][0]["content"]["parts"][0]["text"]
-            
+
             save_prompt_if_new(question)  # Save the prompt if it's new
 
             return summarized_text
@@ -261,6 +317,7 @@ def promptAnswer():
         print(error_message)
         return jsonify({'error': error_message}), 500
 
+
 @app.route("/getPrompts", methods=["GET"])
 def get_prompts():
     try:
@@ -269,6 +326,7 @@ def get_prompts():
         return jsonify({"prompts": [prompt.strip() for prompt in prompts]}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/toTranslate", methods=["POST"])
 def Translate():
@@ -293,7 +351,7 @@ def Translate():
         }
 
         language_map = {
-            "English" : "en",
+            "English": "en",
             "Spanish": 'es',
             "German": 'de',
             "Chinese": 'zh'
@@ -303,15 +361,19 @@ def Translate():
             return jsonify({"error": "Invalid language selected"}), 400
 
         params = {'api-version': '3.0', 'to': language_map[selectedLanguage]}
-        body = [{'text': text} for text in input_text]  # Keep input text as separate translation requests
+        # Keep input text as separate translation requests
+        body = [{'text': text} for text in input_text]
 
         # Make the POST request to the Azure Translation API
-        response = requests.post(url, headers=headers, params=params, json=body)
-        response.raise_for_status()  # Raise an HTTPError if the HTTP request returned an unsuccessful status code
+        response = requests.post(url, headers=headers,
+                                 params=params, json=body)
+        # Raise an HTTPError if the HTTP request returned an unsuccessful status code
+        response.raise_for_status()
 
         # Parse the translation result
         translations = response.json()
-        translated_texts = [item['translations'][0]['text'] for item in translations]
+        translated_texts = [item['translations'][0]['text']
+                            for item in translations]
 
         # print("Translated texts: ", translated_texts)
         return jsonify({"translated_texts": translated_texts}), 200
@@ -326,6 +388,38 @@ def Translate():
         # Handle any other exceptions
         return jsonify({"error": f"Exception: {str(e)}"}), 500
 
+
+@app.route("/ToSearchPreMarketDB", methods=["POST"])
+def SearchDB():
+    device_name = request.json.get('SearchKeyword')
+
+    all_K_Number = []
+    all_RegulatoryNumber = []
+
+    try:
+        # Step 1: Search for the device
+        data = search_510k_device(device_name)
+
+        if 'results' in data and len(data['results']) > 0:
+            for entry in data['results']:
+                print(f"Device Name: {entry['device_name']}")
+                print(f"510(k) Number: {entry['k_number']}")
+                all_K_Number.append(entry['k_number'])
+
+                # Step 2: Fetch the regulation number
+                regulation_number = fetch_device_details(entry['k_number'])
+                print(f"Regulation Number: {regulation_number}")
+                all_RegulatoryNumber.append(regulation_number)
+        else:
+            print(f"No results found for device name: {device_name}")
+        
+        return jsonify({
+            'message': 'Search Successfull',
+            'K_Number': all_K_Number,
+            'RegulatoryNumber': all_RegulatoryNumber
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':

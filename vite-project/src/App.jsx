@@ -18,6 +18,9 @@ const UploadPDF = () => {
   const [storedPrompts, setStoredPrompts] = useState([]); // State to store prompts
 
   const [selectedLanguage, setSelectedLanguage] = useState('');
+  const [SearchKeyword, setSearchKeyword] = useState('')
+  const [K_Number, setK_Number] = useState([])
+  const [DeviceRegulatoryNumber, setDeviceRegulatoryNumber] = useState([])
 
   const handleChange = (event) => {
     setSelectedLanguage(event.target.value);
@@ -91,6 +94,7 @@ const UploadPDF = () => {
       setAnswer(response.data);
       fetchStoredPrompts(); // Refresh stored prompts
     } catch (err) {
+      toast.error("Somethins went wrong... Please try to upload the Files again.")
       console.log(err);
     }
   };
@@ -111,7 +115,7 @@ const UploadPDF = () => {
   const handleTranslate = async (e) => {
     e.preventDefault();
     if (!selectedLanguage) {
-      toast.error("Please select a language");
+      toast.info("Please select a language");
       return;
     }
 
@@ -135,15 +139,37 @@ const UploadPDF = () => {
     }
   };
 
+  const handleDbQuerySearch = async (e) => {
+    e.preventDefault();
+    if (!SearchKeyword) {
+      toast.info("Please fill something to perform search");
+      return;
+    }
+    toast.info("Searching in 510(k) Premarket Notification Database For Similar Products...");
+    try {
+      const response = await axios.post('http://localhost:5000/ToSearchPreMarketDB', {
+        SearchKeyword: SearchKeyword
+      });
+      console.log(response.data);
+      if (response.data.K_Number || response.data.RegulatoryNumber) {
+        toast.success("Search Completed..!")
+        setK_Number(response.data.K_Number)
+        setDeviceRegulatoryNumber(response.data.RegulatoryNumber)
+      }
+    } catch (err) {
+      toast.err("Couldn't Perform the Search..!")
+    }
+  }
+
   return (
     <div className='mainpage'>
       <Toaster richColors />
       <div className='content'>
         <div>
           <h1>Upload PDF/Docx Files</h1>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} style={{display: "flex", alignItems: "center"}}>
             <input type="file" onChange={handleFileChange} multiple />
-            <button style={{ marginTop: '20px' }} type="submit">Upload</button>
+            <button type="submit">Upload</button>
           </form>
           <div className='file-name-div'>
             <ul>
@@ -198,16 +224,51 @@ const UploadPDF = () => {
         </div>
       </div>
 
-      <div className='storedPrompts'>
-        <div>
+      <div className='leftContent'>
+        <div className='SearchPreMarketDB'>
           <div style={{ textAlign: 'center' }}>
-            <h2>Stored Prompts</h2>
+            <h2>510(k) Premarket Notification DB Search</h2>
           </div>
-          <ul>
-            {storedPrompts.map((storedPrompt, index) => (
-              <li key={index}>{storedPrompt}</li>
-            ))}
-          </ul>
+          <form className='Generate_DB_Results' onSubmit={handleDbQuerySearch}>
+            <div className='SearchQueryOnDB'>
+              <div>
+                <input type="text" value={SearchKeyword} onChange={(e) => setSearchKeyword(e.target.value)} placeholder="Enter exact keyword to get similer products" />
+              </div>
+            </div>
+            <div className='SearchQuerySubmit'>
+              <button type="submit">Generate Answer</button>
+            </div>
+          </form>
+          <div className='DbQueryResults'>
+            <div>
+              <h4 style={{ marginLeft: "1vw" }}>510K Numbers</h4>
+              <ol>
+                {K_Number.map((Number, index) => (
+                  <li key={index}>{Number}</li>
+                ))}
+              </ol>
+            </div>
+            <div>
+              <h4 style={{ marginLeft: "1vw" }}>Regulatory Numbers</h4>
+              <ul>
+                {DeviceRegulatoryNumber.map((Number, index) => (
+                  <li key={index}>{Number}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div className='storedPrompts'>
+          <div>
+            <div style={{ textAlign: 'center' }}>
+              <h2>Stored Prompts</h2>
+            </div>
+            <ul>
+              {storedPrompts.map((storedPrompt, index) => (
+                <li key={index}>{storedPrompt}</li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </div>
