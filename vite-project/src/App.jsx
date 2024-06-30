@@ -54,7 +54,7 @@ const UploadPDF = () => {
       return;
     }
 
-    toast.info("Uploading the files and generating summaries...");
+    toast.info("Uploading the files...");
     const fileURLs = [];
 
     for (const file of selectedFiles) {
@@ -75,14 +75,27 @@ const UploadPDF = () => {
     try {
       const response = await axios.post('http://localhost:5000/upload', { fileURLs });
 
-      toast.success("PDFs Uploaded Successfully, summaries generated.");
-      setExtractedText(response.data.extracted_texts);
-      setSummary(response.data.summaries);
+      // toast.success("PDFs Uploaded Successfully, summaries generated.");
+      toast.success("PDFs Uploaded Successfully");
+      // setExtractedText(response.data.extracted_texts);
+      // setSummary(response.data.summaries);
     } catch (error) {
       console.error('Error uploading files:', error);
       alert('Error uploading files');
     }
   };
+
+  const handleGenerateSummary = async () => {
+    toast.info("Generating Summary of the Files..")
+    try {
+      const response = await axios.get('http://localhost:5000/GenerateSummary');
+      toast.success("Summaries generated Successfully!");
+      console.log(response.data);
+      setSummary(response.data.summaries)
+    } catch (err) {
+      toast.error("Something went wrong while Generating Summary")
+    }
+  }
 
   const handleInputSubmit = async (e) => {
     e.preventDefault();
@@ -103,11 +116,11 @@ const UploadPDF = () => {
 
   function formatResponse(response) {
     // Replace markdown syntax with appropriate text
-    response = response.replace(/## /g, '## ');
+    response = response?.replace(/## /g, '## ');
 
     // Add line breaks where needed
-    response = response.replace(/\n\n/g, '\n\n');
-    response = response.replace(/\n/g, '\n');
+    response = response?.replace(/\n\n/g, '\n\n');
+    response = response?.replace(/\n/g, '\n');
 
     return response;
   }
@@ -162,7 +175,7 @@ const UploadPDF = () => {
       toast.error("This Keyword does not exist..!")
     }
   }
-
+  console.log(summary);
   return (
     <div className='wholePage'>
       <div className='Logo-Div'>
@@ -177,7 +190,7 @@ const UploadPDF = () => {
         <Toaster richColors />
         <div className='content'>
           <div className='Upload-File-Get-Summary'>
-            <h1 style={{ textShadow: "5px 5px 7px #888888" }}>DocQ&A</h1>
+            <h1 style={{ textShadow: "5px 5px 7px #888888" }}>MedDossierAssistant</h1>
             <form onSubmit={handleSubmit} style={{ display: "flex", alignItems: "center" }}>
               <input type="file" onChange={handleFileChange} multiple />
               <button type="submit">Upload</button>
@@ -200,6 +213,7 @@ const UploadPDF = () => {
                 <option value="Chinese">Chinese</option>
               </select>
               <button className='translate-btn' onClick={handleTranslate}>Translate</button>
+              <button className='translate-btn' onClick={handleGenerateSummary}>Generate Summary</button>
             </div>
 
 
@@ -207,7 +221,7 @@ const UploadPDF = () => {
             {selectedLanguage && <p>You selected: {selectedLanguage}</p>}
           </div> */}
 
-            {summary.length > 0 && summary.map((sum, index) => (
+            {summary?.map((sum, index) => (
               <div className='summary-div' key={index}>
                 <h2>Summary by AI For File {index + 1}, File Name: {TotalFileNames[index]}:</h2>
                 <ReactMarkdown children={formatResponse(sum)} remarkPlugins={[remarkGfm]} />
@@ -219,15 +233,15 @@ const UploadPDF = () => {
             <h2>Generate a Question-Based Answer from the PDFs/Docx</h2>
             <form className='Generate_Answer_Form' onSubmit={handleInputSubmit}>
               <div>
-                <input className='Question-prompt-input' type="text" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Enter your prompt here" />
+                <textarea className='Question-prompt-input' type="text" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Enter your prompt here" />
               </div>
               <div>
-                <button type="submit">Generate Answer</button>
+                <button style={{ marginTop: "5%" }} type="submit">Generate Answer</button>
               </div>
             </form>
             {answer && (
               <div className='Prompt-Answer-div'>
-                <h2>Answer by AI:</h2>
+                <h2>Response:</h2>
                 {/* <p>{answer}</p> */}
                 <ReactMarkdown children={formattedAnswer} remarkPlugins={[remarkGfm]} />
               </div>
@@ -247,7 +261,7 @@ const UploadPDF = () => {
                 </div>
               </div>
               <div className='SearchQuerySubmit'>
-                <button type="submit">Generate Answer</button>
+                <button type="submit">Search Device</button>
               </div>
             </form>
             <div className='DbQueryResults'>
@@ -278,11 +292,15 @@ const UploadPDF = () => {
               <div style={{ textAlign: 'center' }}>
                 <h2>Stored Prompts</h2>
               </div>
-              <ul>
-                {storedPrompts.map((storedPrompt, index) => (
+              {storedPrompts.length > 0 ? storedPrompts.map((storedPrompt, index) => (
+                <ul>
                   <li key={index}>{storedPrompt}</li>
-                ))}
-              </ul>
+                </ul>
+              )) : <div style={{ display: "flex", justifyContent: "center", paddingBottom: "7%" }}>
+                <div>No Prompts Saved</div>
+              </div>
+              }
+
             </div>
           </div>
         </div>

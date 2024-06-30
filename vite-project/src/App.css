@@ -21,7 +21,7 @@ input {
   margin-left: 10px;
   height: 10%;
   width: auto;
-  font-size: 15px;
+  font-size: 16px;
 }
 .mainpage {
   display: flex;
@@ -33,7 +33,7 @@ input {
   text-align: left;
 }
 
-.content{
+.content {
   padding-left: 7%;
 }
 .summary-div {
@@ -62,7 +62,7 @@ input {
   justify-content: center;
   align-items: center;
   text-align: center;
-  margin-right: 2vw; 
+  margin-right: 2vw;
   width: 67vw;
 }
 
@@ -77,13 +77,15 @@ input {
 }
 
 .leftContent {
+  height: fit-content;
   padding-right: 1vw;
+  padding-bottom: 4vh;
   margin-right: 1vw;
   margin-bottom: 1.5vh;
   background-color: rgb(214, 219, 225);
   box-shadow: 0 6px 8px rgba(33, 33, 33, 0.725); /* Box shadow */
   border-radius: 5px;
-  padding-left: 0.5vw;
+  padding-left: 1vw;
 }
 
 .Generate_DB_Results {
@@ -152,6 +154,10 @@ select {
 }
 
 .Question-prompt-input {
+  width: 100%;
+  height: 120%;
+  text-align: center;
+  background-color: white;
   border-radius: 5px;
   border-color: rgb(139, 134, 134);
   color: black;

@@ -204,7 +204,7 @@ def upload_file():
 
     try:
         api_key = "K83551900988957"
-        gemini_api_key = "AIzaSyDvdKaAqQsbJim30noP8mfkHNAl0Y8pwhM"
+        # gemini_api_key = "AIzaSyDvdKaAqQsbJim30noP8mfkHNAl0Y8pwhM"
 
         # content_type = str(get_content_type(file_urls))
         # print(content_type)
@@ -219,21 +219,44 @@ def upload_file():
                 print("The file is a DOCX.")
                 extracted_text = extract_text_from_docx_with_images(
                     url, api_key)
+            else:
+                extracted_text = "Unsupported file type"
             all_extracted_texts.append(extracted_text)
-            summary = summarize_text_with_gemini(
-                extracted_text, gemini_api_key)
-            all_summaries.append(summary)
+            # summary = summarize_text_with_gemini(
+            #     extracted_text, gemini_api_key)
+            # all_summaries.append(summary)
+        # print(all_extracted_texts)
 
         textValue["all_extracted_texts"] = all_extracted_texts
-        textValue["all_summaries"] = all_summaries
+        # textValue["all_summaries"] = all_summaries
 
         return jsonify({
             'message': 'Files uploaded successfully',
-            'extracted_texts': all_extracted_texts,
-            'summaries': all_summaries
+            'extracted_texts': all_extracted_texts
+            # 'summaries': all_summaries
         }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/GenerateSummary', methods=['GET'])
+def getSummary():
+    extracted_texts = textValue.get('all_extracted_texts')
+    gemini_api_key = "AIzaSyDvdKaAqQsbJim30noP8mfkHNAl0Y8pwhM"
+
+    all_summaries = []
+
+    for text in extracted_texts:
+        summary = summarize_text_with_gemini(text, gemini_api_key)
+        all_summaries.append(summary)
+
+    print(all_summaries)
+
+    textValue["all_summaries"] = all_summaries
+
+    return jsonify({
+        'summaries':  all_summaries
+    }), 200
 
 
 def save_prompt_if_new(prompt):
@@ -412,7 +435,7 @@ def SearchDB():
                 all_RegulatoryNumber.append(regulation_number)
         else:
             print(f"No results found for device name: {device_name}")
-        
+
         return jsonify({
             'message': 'Search Successfull',
             'K_Number': all_K_Number,

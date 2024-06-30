@@ -1,4 +1,1 @@
-Who is Christina Winter ? WHat did she has to say about MedDRA and Is the structure of MedDRA complicated? Describe it's structure? According to the file name, could please suggest me some points on it.
-According to the file name, could please suggest me some points on that topic, that I could add in the File.
-Could you please generate questions from each section and answer them accordingly.According to the file name, could please provide some questions and answer them accordingly..
-According to the file, could please create some questions and answer them accordingly..
+Could you create Cover Letter for FDA submission of medical dossier for the first file. And provide an Clinical Evaluation for the 2nd File in detail.
