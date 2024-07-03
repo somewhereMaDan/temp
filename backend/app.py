@@ -7,12 +7,31 @@ import subprocess
 import os
 import tempfile
 from bs4 import BeautifulSoup
+from google.cloud import translate_v2 as translate
+from google.oauth2 import service_account
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 textValue = {}
 
+credentials_dict = {
+    "type": "service_account",
+    "project_id": "plated-entry-427510-v5",
+    "private_key_id": "65de0238d19c5afa1fec3932a6d2bc4c52ab4b91",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDnqGz8VjQUdoX2\nH1dl44DamJ0eUlwXUwDxl/WD2w0mh5pqedwGjmpFCopN3HrcXNbtiEq86wRtmn8l\n/cACykomYTd3UYsEBkx5AVtrS4won0xYoJ2g7/s8WKXGc/QRqmxF5PJR6sHBS4jg\nEsfiDbt5U2kP23EWPQ7MZh1K8Mn461PDwlV0HMCoUHI6EkW9nlvUxmez9WLh9q7M\nVTtmlNp7utDO6ky80qBhZjDf+v4JpE3QQrBQcUJ8Wj7K2g19OpeYxtg8EAfkoF2R\ns9S6NG8g5bx0s3J7tfeMGUQAMumOghmMUPc3gEqCtntdoYYW+EAYAYtQDh81NkJU\nWF3sm3t9AgMBAAECggEASO3lIauhya9mjQ1g3lq4/hh9nkYfZ9hhu60zRcd4ZGDc\nZBjpA8dh/UpMMCbxJt6zayQ1IzR5uGejD7rK8BXvMhX4+D9bnHC/MnkS5rxp63/6\n8QvflAL4/Q6LYeavN8CHRZnGD7PwO4IkHSbMdoYMNy3jLXLQL0gZmI+tOSKE8y/J\nQuSYdDlu/laTYhVBnH3peBN6pCCCapHdyqWz7t6OGaskXtCN0oW01f77CQ853QJc\nVetF0tgKz9BWnFskUH6Z0KdquqbljulPoqi1IVlf1hxyeFBV1XpkzvK9q08Ft+LJ\njBdLdDjlOjZU9/VhOkogj6v0SD32eNvST4obeZ0toQKBgQD9Z6aztVDMmcIfFi/c\nL+vcMuaUM+ZXRElXB6SIlw7++WGLdpMIwOZn79m7XgSeHKumXb0ZtQqrdy2gmOZG\nyEZnsw3LTQPDJC/9p/ZvDZBROzCbyJpQYkiSiPnMaXjJoQfzy4lFpW8cVPu4BzPI\nY3Cb/KtDo3o0Q5RDZHsN/YG+QwKBgQDqB8K/6UIJZrtecrEIWmJRssl1TeRH7gb5\nHUn6hXEMvbFXfGlfioUxcv2B0NlBGfwDKcRGuTTJ8a36QNHrSjWsFcBBOEi3oGQV\ng/2fhPROiu2AgGM04yCivMA3Y78spZqwI9WYnKJic6p+eFj682ntCwB3ql28Z24K\ntSUkNkOjPwKBgFCAoUDuFSEqp7Tgg4vb3X4y3XWvlzmaBAKV9vs9ohH2f7qijMt3\nHLtgQzd3AtiIGy/bD7we+6jFT8V5TY6nCVbgVz2C1fMkh+p5dZyKHpLvzt1uuTdY\nQd3rjhAWYb0MX05gFtf9WnMRvHYWM6kxjhDAEFiIksYPwgY24bDsHE+pAoGBAJ/L\nJMJ8tkZNCup2TUJy1GcMOFoMES676670vKp9qq8UZp5hqGE/56nX5hhZTb4Ry+0s\n+4N+ufiZOD2DPNH3HaaeQ2NE1wHqVewK74WX9mganAf9ob9exc3YKzamuMX3XSOf\nlBxb9tRaPbOU4MyYn17nAC60+MPHq29MOEv9cTlpAoGAYJYvgzpRqzhgR+UDsWpp\nTxAB+a/M5HKpTiAPFTLD9F3Pb9p/7O/N7cH+5BgVTwtvGvq3eFV2olkZm4DfMxax\n9L6BfjsMSbOHaJ6b5/n6+96UPHwYnjopFNEOeQS2XEFgInv/t+qVelpFg5n17lOq\nfIWBFswPgbRPO/o+AxGemlQ=\n-----END PRIVATE KEY-----\n",
+    "client_email": "translatortest@plated-entry-427510-v5.iam.gserviceaccount.com",
+    "client_id": "112645408741989243459",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/translatortest%40plated-entry-427510-v5.iam.gserviceaccount.com",
+    "universe_domain": "googleapis.com"
+}
+
+# Create credentials using the dictionary
+credentials = service_account.Credentials.from_service_account_info(credentials_dict)
+translate_client = translate.Client(credentials=credentials)
 
 @app.route('/')
 def home():
@@ -354,8 +373,8 @@ def get_prompts():
 @app.route("/toTranslate", methods=["POST"])
 def Translate():
     try:
-        # Extract the input text from the request
-        input_text = textValue.get("all_summaries")
+        # Extract the input text and selected language from the request
+        input_text = request.json.get("all_summaries")
         selectedLanguage = request.json.get('selectedLanguage')
 
         if not input_text:
@@ -364,52 +383,84 @@ def Translate():
         if not selectedLanguage:
             return jsonify({"error": "No language selected"}), 400
 
-        # Azure Translation API credentials and endpoint
-        key = '4e40b2a66b5245ebaa7d68eb6f557c3a'
-        endpoint = 'https://translate-app-api.cognitiveservices.azure.com/translator/text/v3.0/translate'
-        url = endpoint
-        headers = {
-            'Ocp-Apim-Subscription-Key': key,
-            'Content-Type': 'application/json'
-        }
-
         language_map = {
             "English": "en",
             "Spanish": 'es',
             "German": 'de',
             "Chinese": 'zh'
         }
-
         if selectedLanguage not in language_map:
             return jsonify({"error": "Invalid language selected"}), 400
 
-        params = {'api-version': '3.0', 'to': language_map[selectedLanguage]}
-        # Keep input text as separate translation requests
-        body = [{'text': text} for text in input_text]
+        target_language = language_map[selectedLanguage]
+        # Perform translation
+        translated_texts = []
+        for text in input_text:
+            translated_text = translate_client.translate(text, target_language=target_language)
+            translated_texts.append(translated_text['translatedText'])
 
-        # Make the POST request to the Azure Translation API
-        response = requests.post(url, headers=headers,
-                                 params=params, json=body)
-        # Raise an HTTPError if the HTTP request returned an unsuccessful status code
-        response.raise_for_status()
-
-        # Parse the translation result
-        translations = response.json()
-        translated_texts = [item['translations'][0]['text']
-                            for item in translations]
-
-        # print("Translated texts: ", translated_texts)
         return jsonify({"translated_texts": translated_texts}), 200
 
-    except requests.exceptions.RequestException as e:
-        # Handle any exceptions related to the HTTP request
-        return jsonify({"error": f"RequestException: {str(e)}"}), 500
-    except KeyError as e:
-        # Handle missing keys in the response JSON
-        return jsonify({"error": f"KeyError: {str(e)}"}), 500
     except Exception as e:
-        # Handle any other exceptions
         return jsonify({"error": f"Exception: {str(e)}"}), 500
+
+    # try:
+    #     # Extract the input text from the request
+    #     input_text = textValue.get("all_summaries")
+    #     selectedLanguage = request.json.get('selectedLanguage')
+
+    #     if not input_text:
+    #         return jsonify({"error": "No text provided for translation"}), 400
+
+    #     if not selectedLanguage:
+    #         return jsonify({"error": "No language selected"}), 400
+
+    #     # Azure Translation API credentials and endpoint
+    #     key = '4e40b2a66b5245ebaa7d68eb6f557c3a'
+    #     endpoint = 'https://translate-app-api.cognitiveservices.azure.com/translator/text/v3.0/translate'
+    #     url = endpoint
+    #     headers = {
+    #         'Ocp-Apim-Subscription-Key': key,
+    #         'Content-Type': 'application/json'
+    #     }
+
+    #     language_map = {
+    #         "English": "en",
+    #         "Spanish": 'es',
+    #         "German": 'de',
+    #         "Chinese": 'zh'
+    #     }
+
+    #     if selectedLanguage not in language_map:
+    #         return jsonify({"error": "Invalid language selected"}), 400
+
+    #     params = {'api-version': '3.0', 'to': language_map[selectedLanguage]}
+    #     # Keep input text as separate translation requests
+    #     body = [{'text': text} for text in input_text]
+
+    #     # Make the POST request to the Azure Translation API
+    #     response = requests.post(url, headers=headers,
+    #                              params=params, json=body)
+    #     # Raise an HTTPError if the HTTP request returned an unsuccessful status code
+    #     response.raise_for_status()
+
+    #     # Parse the translation result
+    #     translations = response.json()
+    #     translated_texts = [item['translations'][0]['text']
+    #                         for item in translations]
+
+    #     # print("Translated texts: ", translated_texts)
+    #     return jsonify({"translated_texts": translated_texts}), 200
+
+    # except requests.exceptions.RequestException as e:
+    #     # Handle any exceptions related to the HTTP request
+    #     return jsonify({"error": f"RequestException: {str(e)}"}), 500
+    # except KeyError as e:
+    #     # Handle missing keys in the response JSON
+    #     return jsonify({"error": f"KeyError: {str(e)}"}), 500
+    # except Exception as e:
+    #     # Handle any other exceptions
+    #     return jsonify({"error": f"Exception: {str(e)}"}), 500
 
 
 @app.route("/ToSearchPreMarketDB", methods=["POST"])

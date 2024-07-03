@@ -137,21 +137,34 @@ const UploadPDF = () => {
     toast.info("Translating the Summary...");
     try {
       const response = await axios.post('http://localhost:5000/toTranslate', {
+        all_summaries: summary,
         selectedLanguage: selectedLanguage
       });
-
-      console.log(response.data);
-
-      if (response.data.translated_texts) {
+      if (response.status === 200) {
+        console.log(response.data);
+        console.log('Translation successful:', response.data);
         toast.success("Summary Translated Successfully...");
-        setSummary(response.data.translated_texts); // Updating state with translated texts array
+        setSummary(response.data.translated_texts);
       } else {
-        toast.error("Translation failed.");
+        toast.error('Translation failed');
       }
-    } catch (err) {
-      toast.error("Something went wrong...");
-      console.log(err);
+    } catch (error) {
+      console.error('Error translating text:', error);
+      toast.error('Translation failed');
     }
+
+    //   console.log("From toTranslateAPI: ", response.data);
+
+    //   if (response.data.translated_texts) {
+    //     toast.success("Summary Translated Successfully...");
+    //     setSummary(response.data.translated_texts); // Updating state with translated texts array
+    //   } else {
+    //     toast.error("Translation failed.");
+    //   }
+    // } catch (err) {
+    //   toast.error("Something went wrong...");
+    //   console.log(err);
+    // }
   };
 
   const handleDbQuerySearch = async (e) => {
