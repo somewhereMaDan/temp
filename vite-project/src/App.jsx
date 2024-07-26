@@ -12,7 +12,7 @@ import LogoTitle from './photos/tagline.png'
 
 const UploadPDF = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [extractedText, setExtractedText] = useState([]);
+  // const [extractedText, setExtractedText] = useState([]);
   const [summary, setSummary] = useState([]);
   const [prompt, setPrompt] = useState('');
   const [answer, setAnswer] = useState('');
@@ -24,7 +24,7 @@ const UploadPDF = () => {
   const [K_Number, setK_Number] = useState([])
   const [DeviceRegulatoryNumber, setDeviceRegulatoryNumber] = useState([])
 
-  const handleChange = (event) => {
+  const handleLanguageChange = (event) => {
     setSelectedLanguage(event.target.value);
   };
 
@@ -47,7 +47,7 @@ const UploadPDF = () => {
     setSelectedFiles(prevFiles => [...prevFiles, ...Array.from(event.target.files)]);
   };
 
-  const handleSubmit = async (event) => {
+  const handleFileSubmit = async (event) => {
     event.preventDefault();
     if (selectedFiles.length === 0) {
       alert('Please select at least one file');
@@ -97,7 +97,7 @@ const UploadPDF = () => {
     }
   }
 
-  const handleInputSubmit = async (e) => {
+  const handlePromptSubmit = async (e) => {
     e.preventDefault();
     toast.info("Generating Answer...");
     try {
@@ -109,7 +109,7 @@ const UploadPDF = () => {
       setAnswer(response.data);
       fetchStoredPrompts(); // Refresh stored prompts
     } catch (err) {
-      toast.error("Somethins went wrong... Please try to upload the Files again.")
+      toast.error("Rate limit exceeded, Please try after some seconds...")
       console.log(err);
     }
   };
@@ -152,19 +152,6 @@ const UploadPDF = () => {
       console.error('Error translating text:', error);
       toast.error('Translation failed');
     }
-
-    //   console.log("From toTranslateAPI: ", response.data);
-
-    //   if (response.data.translated_texts) {
-    //     toast.success("Summary Translated Successfully...");
-    //     setSummary(response.data.translated_texts); // Updating state with translated texts array
-    //   } else {
-    //     toast.error("Translation failed.");
-    //   }
-    // } catch (err) {
-    //   toast.error("Something went wrong...");
-    //   console.log(err);
-    // }
   };
 
   const handleDbQuerySearch = async (e) => {
@@ -204,7 +191,7 @@ const UploadPDF = () => {
         <div className='content'>
           <div className='Upload-File-Get-Summary'>
             <h1 style={{ textShadow: "5px 5px 7px #888888" }}>MedDossierAssistant</h1>
-            <form onSubmit={handleSubmit} style={{ display: "flex", alignItems: "center" }}>
+            <form onSubmit={handleFileSubmit} style={{ display: "flex", alignItems: "center" }}>
               <input type="file" onChange={handleFileChange} multiple />
               <button type="submit">Upload</button>
             </form>
@@ -218,7 +205,7 @@ const UploadPDF = () => {
 
             <div className="dropdown-container">
               <label htmlFor="languages">Choose a language:</label>
-              <select id="languages" name="languages" onChange={handleChange} value={selectedLanguage}>
+              <select id="languages" name="languages" onChange={handleLanguageChange} value={selectedLanguage}>
                 <option value="">Select a language</option>
                 <option value="English">English</option>
                 <option value="Spanish">Spanish</option>
@@ -228,11 +215,6 @@ const UploadPDF = () => {
               <button className='translate-btn' onClick={handleTranslate}>Translate</button>
               <button className='translate-btn' onClick={handleGenerateSummary}>Generate Summary</button>
             </div>
-
-
-            {/* <div id="selected-language">
-            {selectedLanguage && <p>You selected: {selectedLanguage}</p>}
-          </div> */}
 
             {summary?.map((sum, index) => (
               <div className='summary-div' key={index}>
@@ -244,7 +226,7 @@ const UploadPDF = () => {
 
           <div className='Generate-Answer-From-Prompt'>
             <h2>Generate a Question-Based Answer from the PDFs/Docx</h2>
-            <form className='Generate_Answer_Form' onSubmit={handleInputSubmit}>
+            <form className='Generate_Answer_Form' onSubmit={handlePromptSubmit}>
               <div>
                 <textarea className='Question-prompt-input' type="text" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Enter your prompt here" />
               </div>

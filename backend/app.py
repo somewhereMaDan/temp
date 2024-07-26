@@ -151,7 +151,8 @@ def summarize_text_with_gemini(text, gemini_api_key):
             {
                 "parts": [
                     {
-                        "text": "Please summarize the text content and if the content is too large, increase your summarization:\n" + text
+                        # "text": "Please summarize the text content and if the content is too large, increase your summarization:\n" + text
+                        "text" : "Please summarize the text content and if the content is too large, increase your summarization it should be atleast 300-400 words and The elements that it should contain are: 1)Main Idea: Clearly state the central theme or thesis of the content. This provides the reader with a quick understanding of what the text is about. 2)Key Points: Highlight the most important points or arguments made in the content. These are usually the sub-themes or supporting arguments that bolster the main idea. 3)Critical Details: Include significant facts, figures, or details that are crucial to understanding the content. Avoid minor details and focus on what is necessary for a comprehensive summary. 4)Purpose: Explain the purpose of the content. This could be to inform, persuade, entertain, or explain a concept. 5)Conclusion: Summarize the conclusion or final thoughts of the content. This often encapsulates the overall message or final takeaway the author wants to impart to the reader. 6) Structure: Maintain a logical flow that mirrors the structure of the original content, ensuring that the summary is cohesive and easy to follow." + text
                     }
                 ]
             }
